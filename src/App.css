@@ -1,0 +1,4 @@
+.animate-textarea{
+  transition: width 1s ease-in;
+  width: 100px;
+}

@@ -175,7 +175,7 @@ function App() {
 
   function getUrlQrCode() {
     if (characters > 700) {
-      return <h2 className='m-3'>字元數太多，無法使用連結</h2>
+      return <h2 className='m-3'>字數太多，無法使用連結</h2>
     } else {
       return (
         <>
@@ -203,7 +203,7 @@ function App() {
           ></textarea>
         </center>
         <p></p>
-        <div style={{ textAlign: "left" }} className='d-flex'>
+        <div style={{ textAlign: "left",flexWrap:"wrap" }} className='d-flex'>
 
           <h3><span className='badge bg-primary'>{word} 個字</span></h3>&nbsp;
           <h3><span className='badge bg-info'>{characters} 個字元</span></h3>&nbsp;

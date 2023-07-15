@@ -3,9 +3,9 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode.react';
-
+import { Fade } from 'react-bootstrap';
 
 
 
@@ -18,9 +18,14 @@ function App() {
   const [fileName, setFileName] = useState("")
   const [msgs, setMsgs] = useState("")
 
-  const [QrDisplay, setQrDisplay] = useState(true)
+  const [ShareCodeDisplay, setShareCodeDisplay] = useState(false)
+  const [receiveCodeDisplay, setReceiveCodeDisplay] = useState(false)
 
+  const [shareCodeData,setShareCodeData] = useState(<></>)
 
+  const [shareCode, setShareCode] = useState("分享碼會顯示在這裡")
+
+  const receiveInput = useRef()
 
 
   useEffect(() => {
@@ -186,6 +191,83 @@ function App() {
     }
   }
 
+  function getShareCode() {
+
+    setShareCode("正在取得")
+    var code;
+    fetch("/share/getcode", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "text": text
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        console.log(res.rantxt)
+        code = res.rantxt
+        setShareCode(code)
+      })
+      .catch(err => {
+        console.log(err)
+        code = `發生錯誤 :( `
+        setShareCode(code)
+      })
+
+  }
+
+  function getTextByCode() {
+    fetch("/get/text", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "uid": receiveInput.current.value
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if(res.text.useTimesRemain>0){
+          if(window.confirm("代碼有效，要取代現有的檔案嗎?\n這個操作無法復原!!")){
+            setText(res.text.text)
+            setFileName("來自分享碼的檔案")
+            setMsgs("正在刷新頁面...")
+            window.location.reload()
+          }
+        }else{
+          alert("代碼無效或過期")
+        }
+      })
+      .catch(err => {alert("代碼無效或過期")})
+  }
+
+  function getShareCodeStatus() {
+
+    fetch("/query/uid", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "uid": shareCode
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        console.log(res)
+        if(res.status.useTimesRemain){
+          setShareCodeData(<div className='alert alert-success'>{shareCode}:代碼有效</div>)
+        }else{
+          setShareCodeData(<div className='alert alert-danger'>{shareCode}:代碼無效或過期，請重新取得</div>)
+        }
+      })
+      .catch(err => {
+        setShareCodeData(<div className='alert alert-danger'>{shareCode}:無法取得狀態，請再試一次</div>)
+      })
+  }
   return (
     <>
       <div className="App m-3">
@@ -203,7 +285,7 @@ function App() {
           ></textarea>
         </center>
         <p></p>
-        <div style={{ textAlign: "left",flexWrap:"wrap" }} className='d-flex'>
+        <div style={{ textAlign: "left", flexWrap: "wrap" }} className='d-flex'>
 
           <h3><span className='badge bg-primary'>{word} 個字</span></h3>&nbsp;
           <h3><span className='badge bg-info'>{characters} 個字元</span></h3>&nbsp;
@@ -220,23 +302,44 @@ function App() {
           }} className='btn btn-danger me-1 btn-lg bi bi-trash'><br></br>清除</button>
 
           <button onClick={e => {
-            setMsgs("正在刷新頁面...")
-            window.location.reload()
-          }} className='btn btn-info me-1 btn-lg bi bi-arrow-clockwise'><br></br>刷新</button>
+            setShareCodeDisplay(false); setReceiveCodeDisplay(!receiveCodeDisplay)
+          }} className='btn btn-info me-1 btn-lg bi bi-cloud-arrow-down-fill' aria-expanded={receiveCodeDisplay}><br></br>接收</button>
 
 
-          <button className='btn btn-primary bi bi-share btn-lg'
-            onClick={e => { setQrDisplay(!QrDisplay); console.log(QrDisplay) }}>
+          <button className='btn btn-primary bi bi-share btn-lg' aria-expanded={ShareCodeDisplay}
+            onClick={e => { setReceiveCodeDisplay(false); setShareCodeDisplay(!ShareCodeDisplay); }}>
             <br></br>分享
           </button>
         </div>
       </div>
-      <div hidden={QrDisplay}>
-        <div className='m-3' >
-          <div className='m-3'> <QRCode value={TextDecode(text, "utf-8")} size={200}></QRCode><br></br><h2>純文字</h2></div>
-          {getUrlQrCode()}
+      <Fade in={ShareCodeDisplay} hidden={!ShareCodeDisplay}>
+        <div className='card m-3 p-2'>
+        <div className='alert alert-info mb-1'>其他裝置輸入分享碼即可取得你的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數<br></br>另外，也可以使用純文字QR code來分享文字，但請注意過多的內容可能會造成無法掃描</div>
+          <h3>分享碼</h3>
+          <div className='p-2 bg-dark text-white mt-1 mb-1' style={{ width: "fit-content", borderRadius: "5px",letterSpacing:"5px",textAlign:"center" }}><h2 className='m-0 p-0'>{shareCode}</h2></div>
+
+          <div className='d-flex'>
+            <button className='btn btn-primary me-1 mb-1 btn-lg' style={{ width: "fit-content" }} onClick={e => getShareCode()}>取得分享碼</button>
+            <button className='btn btn-primary me-1 mb-1 btn-lg' style={{ width: "fit-content" }} onClick={e => getShareCodeStatus()} disabled={Boolean(!Number(shareCode))}>分享碼狀態</button>
+          </div>
+          <p>{shareCodeData}</p>
+          <hr></hr>
+          <h3>純文字QR code</h3>
+          <QRCode value={TextDecode(text, "utf-8")} size={200}></QRCode>
         </div>
-      </div>
+      </Fade>
+
+      <Fade in={receiveCodeDisplay} hidden={!receiveInput}>
+        <div className='card m-3 p-2'>
+          <h3>接收</h3>
+          <div className='alert alert-info'>輸入分享碼即可取得其他裝置的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數</div>
+          <input type='number' ref={receiveInput} placeholder='輸入分享碼' className='form-control form-control-lg' style={{letterSpacing:"5px"}}></input>
+          <p></p>
+          <button className='btn btn-primary btn-lg' style={{ width: "fit-content" }} onClick={(e) => getTextByCode()}>送出</button>
+          
+        
+        </div>
+      </Fade>
       <input id='uploadFile' hidden type="file" accept='text/plain' onChange={e => readFile(e.target.files)}></input>
 
     </>

@@ -164,9 +164,6 @@ function App() {
     return decodedText
   }
 
-  function formateTextAsUrl(text) {
-    return text.replace(/\n/g, '<!b>').replace(/\t/g, '<!t>').replace(/ /g, '<!s>')
-  }
   function decodeUrlAsText(urlParam) {
     console.log(urlParam)
     return urlParam.replace(/%3C!b%3E/g, "\n").replace(/%3C!t%3E/g, "    ").replace(/%3C!s%3E/g, " ").replace(/<!b>/g, "\n").replace(/<!t>/g, "    ").replace(/<!s>/g, " ")

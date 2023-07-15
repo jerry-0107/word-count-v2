@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "name": "word-count-2",
-  "routes": [
-    { "dest": "/server.js" }
-  ]
-}

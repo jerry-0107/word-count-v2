@@ -1,9 +1,7 @@
 {
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" },
-    { "src": "public/**/*", "use": "@vercel/static" }
-  ],
+  "version": 2,
+  "name": "word-count-2",
   "routes": [
-    { "src": "/(.*)", "dest": "/server.js" }
+    { "dest": "/server.js" }
   ]
 }

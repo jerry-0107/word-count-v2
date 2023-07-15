@@ -178,18 +178,6 @@ function App() {
     return result
   }
 
-  function getUrlQrCode() {
-    if (characters > 700) {
-      return <h2 className='m-3'>字數太多，無法使用連結</h2>
-    } else {
-      return (
-        <>
-          <div className='m-3'> <QRCode value={TextDecode((window.location.href + "?t=" + formateTextAsUrl(text)), "utf-8")} size={200}></QRCode><br></br><h2>網址</h2></div> <br></br>
-          <h2 className='m-3'><a href={(window.location.href + "?t=" + formateTextAsUrl(text))}>包含以上文字的連結</a></h2>
-        </>
-      )
-    }
-  }
 
   function getShareCode() {
 

@@ -178,6 +178,7 @@ function App() {
     return result
   }
 
+
   function getShareCode() {
 
     setShareCode("正在取得")

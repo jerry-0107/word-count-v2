@@ -21,12 +21,12 @@ function App() {
   const [ShareCodeDisplay, setShareCodeDisplay] = useState(false)
   const [receiveCodeDisplay, setReceiveCodeDisplay] = useState(false)
 
-  const [shareCodeData,setShareCodeData] = useState(<></>)
-
+  const [shareCodeData, setShareCodeData] = useState(<></>)
+  const [QRCodeSize,setQRcodeSize] = useState(200)
   const [shareCode, setShareCode] = useState("分享碼會顯示在這裡")
 
   const receiveInput = useRef()
-
+  const QRcodeRangeSlide = useRef()
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -186,7 +186,8 @@ function App() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        "text": text
+        "text": text,
+        "timestamp": new Date()
       })
     })
       .then(res => res.json())
@@ -215,18 +216,18 @@ function App() {
     })
       .then(res => res.json())
       .then(res => {
-        if(res.text.useTimesRemain>0){
-          if(window.confirm("代碼有效，要取代現有的檔案嗎?\n這個操作無法復原!!")){
+        if (res.text.useTimesRemain > 0) {
+          if (window.confirm("代碼有效，要取代現有的檔案嗎?\n這個操作無法復原!!")) {
             setText(res.text.text)
             setFileName("來自分享碼的檔案")
             setMsgs("正在刷新頁面...")
             window.location.reload()
           }
-        }else{
+        } else {
           alert("代碼無效或過期")
         }
       })
-      .catch(err => {alert("代碼無效或過期")})
+      .catch(err => { alert("代碼無效或過期") })
   }
 
   function getShareCodeStatus() {
@@ -243,9 +244,12 @@ function App() {
       .then(res => res.json())
       .then(res => {
         console.log(res)
-        if(res.status.useTimesRemain){
+        res.status.vaildUntil = new Date(res.status.vaildUntil)
+        //var h = res.status.vaildUntil.getHours() < 10 ? "0" + res.status.vaildUntil.getHours() : res.status.vaildUntil.getHours(),
+          //m = res.status.vaildUntil.getMinutes() < 10 ? "0" + res.status.vaildUntil.getMinutes() : res.status.vaildUntil.getMinutes()
+        if (res.status.useTimesRemain) {
           setShareCodeData(<div className='alert alert-success'>{shareCode}:代碼有效</div>)
-        }else{
+        } else {
           setShareCodeData(<div className='alert alert-danger'>{shareCode}:代碼無效或過期，請重新取得</div>)
         }
       })
@@ -299,9 +303,9 @@ function App() {
       </div>
       <Fade in={ShareCodeDisplay} hidden={!ShareCodeDisplay}>
         <div className='card m-3 p-2'>
-        <div className='alert alert-info mb-1'>其他裝置輸入分享碼即可取得你的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數<br></br>另外，也可以使用純文字QR code來分享文字，但請注意過多的內容可能會造成無法掃描</div>
+          <div className='alert alert-info mb-1'>其他裝置輸入分享碼即可取得你的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數<br></br>另外，也可以使用純文字QR code來分享文字，但請注意過多的內容可能會造成無法掃描</div>
           <h3>分享碼</h3>
-          <div className='p-2 bg-dark text-white mt-1 mb-1' style={{ width: "fit-content", borderRadius: "5px",letterSpacing:"5px",textAlign:"center" }}><h2 className='m-0 p-0'>{shareCode}</h2></div>
+          <div className='p-2 bg-dark text-white mt-1 mb-1' style={{ width: "fit-content", borderRadius: "5px", letterSpacing: "5px", textAlign: "center" }}><h2 className='m-0 p-0'>{shareCode}</h2></div>
 
           <div className='d-flex'>
             <button className='btn btn-primary me-1 mb-1 btn-lg' style={{ width: "fit-content" }} onClick={e => getShareCode()}>取得分享碼</button>
@@ -311,6 +315,8 @@ function App() {
           <hr></hr>
           <h3>純文字QR code</h3>
           <QRCode value={TextDecode(text, "utf-8")} size={200}></QRCode>
+          <br></br>
+          
         </div>
       </Fade>
 
@@ -318,11 +324,11 @@ function App() {
         <div className='card m-3 p-2'>
           <h3>接收</h3>
           <div className='alert alert-info'>輸入分享碼即可取得其他裝置的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數</div>
-          <input type='number' ref={receiveInput} placeholder='輸入分享碼' className='form-control form-control-lg' style={{letterSpacing:"5px"}}></input>
+          <input type='number' ref={receiveInput} placeholder='輸入分享碼' className='form-control form-control-lg' style={{ letterSpacing: "5px" }}></input>
           <p></p>
           <button className='btn btn-primary btn-lg' style={{ width: "fit-content" }} onClick={(e) => getTextByCode()}>送出</button>
-          
-        
+
+
         </div>
       </Fade>
       <input id='uploadFile' hidden type="file" accept='text/plain' onChange={e => readFile(e.target.files)}></input>

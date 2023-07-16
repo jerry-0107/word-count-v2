@@ -39,8 +39,8 @@ app.post("/share/getcode", (req, res) => {
     
     const text = req.body.text,
         rantxt = `${getRandomInt(100000, 999999)}`;
- 
-    var obj = { "text": text, "useTimesRemain": 3 }
+        var _date = new Date(req.body.timeStamp)
+    var obj = { "text": text, "useTimesRemain": 3,"vaildUntil":_date.setMinutes(_date.getMinutes() + 15) }
     Mcache.set(rantxt, obj)
     console.log(rantxt)
     res.send(JSON.stringify({"success": true,"rantxt": rantxt}))

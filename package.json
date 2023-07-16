@@ -24,6 +24,15 @@
     "socket.io-client": "^4.7.1",
     "web-vitals": "^2.1.4"
   },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "vercel-install":"npm install",
+    "vercel-build":"npm run build",
+    "vercel-start":"node server.js"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

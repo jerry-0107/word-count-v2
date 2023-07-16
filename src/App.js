@@ -22,11 +22,9 @@ function App() {
   const [receiveCodeDisplay, setReceiveCodeDisplay] = useState(false)
 
   const [shareCodeData, setShareCodeData] = useState(<></>)
-  const [QRCodeSize,setQRcodeSize] = useState(200)
   const [shareCode, setShareCode] = useState("分享碼會顯示在這裡")
 
   const receiveInput = useRef()
-  const QRcodeRangeSlide = useRef()
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -227,7 +225,7 @@ function App() {
           alert("代碼無效或過期")
         }
       })
-      .catch(err => { alert("代碼無效或過期") })
+      .catch(err => { alert("代碼無效或過期 (ERR)") })
   }
 
   function getShareCodeStatus() {
@@ -248,13 +246,14 @@ function App() {
         //var h = res.status.vaildUntil.getHours() < 10 ? "0" + res.status.vaildUntil.getHours() : res.status.vaildUntil.getHours(),
           //m = res.status.vaildUntil.getMinutes() < 10 ? "0" + res.status.vaildUntil.getMinutes() : res.status.vaildUntil.getMinutes()
         if (res.status.useTimesRemain) {
-          setShareCodeData(<div className='alert alert-success'>{shareCode}:代碼有效</div>)
+          setShareCodeData(<div className='alert alert-success'>{shareCode}: 代碼有效</div>)
         } else {
-          setShareCodeData(<div className='alert alert-danger'>{shareCode}:代碼無效或過期，請重新取得</div>)
+          setShareCodeData(<div className='alert alert-danger'>{shareCode}: 代碼無效或過期，請重新取得</div>)
         }
       })
       .catch(err => {
-        setShareCodeData(<div className='alert alert-danger'>{shareCode}:無法取得狀態，請再試一次</div>)
+        setShareCodeData(<div className='alert alert-danger'>{shareCode}: 代碼無效或過期，請重新取得 (ERR)</div>)
+
       })
   }
   return (
@@ -320,7 +319,7 @@ function App() {
         </div>
       </Fade>
 
-      <Fade in={receiveCodeDisplay} hidden={!receiveInput}>
+      <Fade in={receiveCodeDisplay} hidden={!receiveCodeDisplay}>
         <div className='card m-3 p-2'>
           <h3>接收</h3>
           <div className='alert alert-info'>輸入分享碼即可取得其他裝置的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數</div>

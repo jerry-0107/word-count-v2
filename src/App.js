@@ -392,10 +392,11 @@ function App() {
       </div>
       <Fade in={ShareCodeDisplay} hidden={!ShareCodeDisplay}>
         <div className='card m-3 p-2'>
-          <div className='alert alert-info mb-1'>其他裝置輸入分享碼即可取得你的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數<br></br>另外，也可以使用純文字QR code來分享文字，但請注意過多的內容可能會造成無法掃描</div>
           <h3>分享碼</h3>
           <div className='p-2 bg-dark text-white mt-1 mb-1' style={{ width: "fit-content", borderRadius: "5px", letterSpacing: "5px", textAlign: "center" }}><h2 className='m-0 p-0'>{shareCode}</h2></div>
-
+          <p></p>
+          <div className='alert alert-info mb-1'>其他裝置輸入分享碼即可取得你的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數<br></br>另外，也可以使用純文字QR code來分享文字，但請注意過多的內容可能會造成無法掃描</div>
+          <p></p>
           <div className='d-flex'>
             <button className='btn btn-primary me-1 mb-1 btn-lg' style={{ width: "fit-content" }} onClick={e => getShareCode()}>取得分享碼</button>
             <button className='btn btn-primary me-1 mb-1 btn-lg' style={{ width: "fit-content" }} onClick={e => getShareCodeStatus()} disabled={Boolean(!Number(shareCode))}>分享碼狀態</button>
@@ -426,9 +427,12 @@ function App() {
 
 
       <div id='fullscreenContainer' style={{ display: (isFullSc ? "flex" : "none"), width: "100vw", height: "100vh", flexDirection: "column" }}>
-        <div id='FscTool' className='p-1'>
-          <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary bi bi-fullscreen-exit '>關閉全螢幕</Button>
+        <div id='FscTool' className='p-1' style={{ display: "flex", justifyContent: "space-between" }}>
+          <div>
+            <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary me-1 bi bi-fullscreen-exit '>關閉全螢幕</Button>
+          </div>
           <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
+            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} >{word}個字</div>
             <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>
             <div id="batteryBar" style={{ display: "inline-block" }}>{currentBattery}</div>
           </div>

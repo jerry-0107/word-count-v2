@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000;
 const path = require("path")
 var bodyParser = require('body-parser');
 const NodeCache = require('node-cache'),
-Mcache = new NodeCache({stdTTL:900});
+    Mcache = new NodeCache({ stdTTL: 900 });
 
 var randomCheckList = []
 function getRandomInt(min, max) {
@@ -15,7 +15,7 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
     var randomNumber;
     do {
-         randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+        randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
     } while (randomCheckList.includes(randomNumber)); // 檢查數字是否已存在於列表中
     randomCheckList.push(randomNumber)
     return randomNumber;
@@ -34,23 +34,24 @@ app.get('/share', (req, res) => {
     res.sendFile('index.html', { root: './build' });
 });
 
-app.post("/share/getcode", (req, res) => { 
-    console.log("[send]",req.body)
-    
+app.post("/share/getcode", (req, res) => {
+
     const text = req.body.text,
         rantxt = `${getRandomInt(100000, 999999)}`;
-        var _date = new Date(req.body.timeStamp)
-    var obj = { "text": text, "useTimesRemain": 3,"vaildUntil":_date.setMinutes(_date.getMinutes() + 15) }
+    var _date = new Date(req.body.timeStamp)
+    var obj = { "text": text, "useTimesRemain": 3, "vaildUntil": _date.setMinutes(_date.getMinutes() + 15) }
     Mcache.set(rantxt, obj)
-    console.log(rantxt)
-    res.send(JSON.stringify({"success": true,"rantxt": rantxt}))
+
+    console.log("[send]", req.body, rantxt)
+
+    res.send(JSON.stringify({ "success": true, "rantxt": rantxt }))
     res.end()
 })
 
 app.post("/get/text", (req, res) => {
     var uid = req.body.uid
     res.send(JSON.stringify({
-        text:Mcache.get(uid)
+        text: Mcache.get(uid)
     }))
 })
 
@@ -61,7 +62,7 @@ app.post("/delete/uid", (req, res) => {
 app.post("/query/uid", (req, res) => {
     var uid = String(req.body.uid)
     res.send(JSON.stringify({
-        status:Mcache.get(uid)
+        status: Mcache.get(uid)
     }))
     res.end()
 

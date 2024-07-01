@@ -5,7 +5,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 
 import React, { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode.react';
-import { Fade } from 'react-bootstrap';
+import { Button, Fade } from 'react-bootstrap';
 
 
 
@@ -25,6 +25,11 @@ function App() {
   const [shareCode, setShareCode] = useState("分享碼會顯示在這裡")
 
   const receiveInput = useRef()
+
+  const [isFullSc, setIsFullSc] = useState(false)
+  const [currentTime, setCurrentTime] = useState("")
+  const [currentBattery, setCurrentBattery] = useState("電池資訊")
+
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -244,7 +249,7 @@ function App() {
         console.log(res)
         res.status.vaildUntil = new Date(res.status.vaildUntil)
         //var h = res.status.vaildUntil.getHours() < 10 ? "0" + res.status.vaildUntil.getHours() : res.status.vaildUntil.getHours(),
-          //m = res.status.vaildUntil.getMinutes() < 10 ? "0" + res.status.vaildUntil.getMinutes() : res.status.vaildUntil.getMinutes()
+        //m = res.status.vaildUntil.getMinutes() < 10 ? "0" + res.status.vaildUntil.getMinutes() : res.status.vaildUntil.getMinutes()
         if (res.status.useTimesRemain) {
           setShareCodeData(<div className='alert alert-success'>{shareCode}: 代碼有效</div>)
         } else {
@@ -256,9 +261,88 @@ function App() {
 
       })
   }
+
+
+  function openFullscreen() {
+    var elem = document.getElementById("fullscreenContainer");
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { /* Safari */
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { /* IE11 */
+      elem.msRequestFullscreen();
+    }
+    setIsFullSc(true)
+  }
+
+  function _exitFsc() {
+    setIsFullSc(false)
+    document.exitFullscreen()
+  }
+
+
+  const handleBChange = ({ target: { level, charging } }) => {
+    function renderBatteryBar(level, charging) {
+      var htmlStr = ""
+      var colorClass = "";
+      var batteryClass = ""
+      if (level >= 0.7) {
+        colorClass = "text-success-c"
+        batteryClass = "bi-battery-full"
+      }
+      else if (0.4 < level && level < 0.7) {
+        colorClass = "text-warning"
+        batteryClass = "bi-battery-half"
+      }
+      else {
+        colorClass = "text-danger"
+        batteryClass = "bi-battery"
+      }
+
+      if (charging) {
+        htmlStr =
+          <><i class={`bi bi-battery-charging ${colorClass}`} style={{ verticalAlign: "middle" }}></i> <span class={colorClass} style={{ fontSize: "1rem;" }}>{Math.round(level * 100)}% </span></>
+      } else {
+        htmlStr = <><i class={`bi ${batteryClass} ${colorClass}`} style={{ verticalAlign: "middle" }}></i> <span class={colorClass} style={{ fontSize: "1rem;" }}>{Math.round(level * 100)}% {(level <= 0.2 && !charging ? "請充電" : "")} {(level >= 0.95 && charging ? "充電完成" : "")}</span></>
+      }
+      setCurrentBattery(htmlStr)
+    }
+    renderBatteryBar(level, charging)
+  }
+
+  useEffect(() => {
+    let battery;
+    navigator.getBattery().then(bat => {
+      var battery = bat;
+      battery.addEventListener("levelchange", handleBChange);
+      battery.addEventListener("chargingchange", handleBChange);
+      handleBChange({ target: battery });
+    });
+    return () => {
+      battery.removeEventListener("levelchange", handleBChange);
+      battery.removeEventListener("chargingchange", handleBChange);
+    };
+  }, []);
+
+  function getTime() {
+    const today = new Date();
+    const hour = (today.getHours() < 10 ? `0${today.getHours()}` : today.getHours())
+    const mins = (today.getMinutes() < 10 ? `0${today.getMinutes()}` : today.getMinutes())
+    setCurrentTime(`${hour}:${mins}`)
+    return `${hour}:${mins}`;
+  }
+
+  useEffect(() => {
+    var timer = setInterval(() => getTime(), 3000)
+    return function cleanup() {
+      clearInterval(timer)
+    }
+
+  });
   return (
     <>
       <div className="App m-3">
+
         <center>
           <textarea
             value={text}
@@ -266,12 +350,13 @@ function App() {
             onBlur={(e) => handleTextareaChange(e.target.value)}
             onFocus={(e) => handleTextareaChange(e.target.value)}
             placeholder="輸入文字..."
-            style={{ width: `${window.innerWidth - 50}px` }}
+            style={{ width: `${window.innerWidth - 50}px`, }}
             rows={10}
             className='form-control form-textarea animate-textarea'
             disabled={(msgs === "資料處理中..." || msgs === "正在處理檔案..." || msgs === "正在刷新頁面...")}
           ></textarea>
         </center>
+
         <p></p>
         <div style={{ textAlign: "left", flexWrap: "wrap" }} className='d-flex'>
 
@@ -294,9 +379,14 @@ function App() {
           }} className='btn btn-info me-1 btn-lg bi bi-cloud-arrow-down-fill' aria-expanded={receiveCodeDisplay}><br></br>接收</button>
 
 
-          <button className='btn btn-primary bi bi-share btn-lg' aria-expanded={ShareCodeDisplay}
+          <button className='btn btn-primary bi bi-share btn-lg me-1' aria-expanded={ShareCodeDisplay}
             onClick={e => { setReceiveCodeDisplay(false); setShareCodeDisplay(!ShareCodeDisplay); }}>
             <br></br>分享
+          </button>
+
+          <button className='btn btn-dark bi bi-fullscreen btn-lg' aria-expanded={ShareCodeDisplay}
+            onClick={e => { openFullscreen() }}>
+            <br></br>全螢幕
           </button>
         </div>
       </div>
@@ -315,15 +405,16 @@ function App() {
           <h3>純文字QR code</h3>
           <QRCode value={TextDecode(text, "utf-8")} size={200}></QRCode>
           <br></br>
-          
+
         </div>
       </Fade>
 
       <Fade in={receiveCodeDisplay} hidden={!receiveCodeDisplay}>
         <div className='card m-3 p-2'>
           <h3>接收</h3>
-          <div className='alert alert-info'>輸入分享碼即可取得其他裝置的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數</div>
           <input type='number' ref={receiveInput} placeholder='輸入分享碼' className='form-control form-control-lg' style={{ letterSpacing: "5px" }}></input>
+          <p></p>
+          <div className='alert alert-info'>輸入分享碼即可取得其他裝置的文字內容<br></br>分享碼有效期限為15分鐘，15分鐘內使用不限次數</div>
           <p></p>
           <button className='btn btn-primary btn-lg' style={{ width: "fit-content" }} onClick={(e) => getTextByCode()}>送出</button>
 
@@ -332,6 +423,28 @@ function App() {
       </Fade>
       <input id='uploadFile' hidden type="file" accept='text/plain' onChange={e => readFile(e.target.files)}></input>
 
+
+
+      <div id='fullscreenContainer' style={{ display: (isFullSc ? "flex" : "none"), width: "100vw", height: "100vh", flexDirection: "column" }}>
+        <div id='FscTool' className='p-1'>
+          <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary bi bi-fullscreen-exit '>關閉全螢幕</Button>
+          <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
+            <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>
+            <div id="batteryBar" style={{ display: "inline-block" }}>{currentBattery}</div>
+          </div>
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => handleTextareaChange(e.target.value)}
+          onBlur={(e) => handleTextareaChange(e.target.value)}
+          onFocus={(e) => handleTextareaChange(e.target.value)}
+          placeholder="輸入文字..."
+          style={{ width: `100%`, height: "98%", background: (isFullSc ? "#000" : "#fff"), color: (isFullSc ? "#fff" : "#000") }}
+
+          className='form-control form-textarea animate-textarea'
+          disabled={(msgs === "資料處理中..." || msgs === "正在處理檔案..." || msgs === "正在刷新頁面...")}
+        ></textarea>
+      </div>
     </>
   );
 }

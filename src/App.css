@@ -1,4 +1,8 @@
-.animate-textarea{
+.animate-textarea {
   transition: width 1s ease-in;
   width: 100px;
+}
+
+.text-success-c {
+  color: #3eff10 !important;
 }

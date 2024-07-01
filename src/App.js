@@ -30,6 +30,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState("")
   const [currentBattery, setCurrentBattery] = useState("電池資訊")
 
+  const [fullscWordCToggle, setfullscWordCToggle] = useState(0)
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -324,6 +325,20 @@ function App() {
     };
   }, []);
 
+  function handlekeydown(e) {
+    if (e.keyCode === 13 && ShareCodeDisplay) { getTextByCode() }
+    if (e.keyCode === 27) {
+      _exitFsc()
+    }
+  }
+  useEffect(() => {
+
+    document.addEventListener("onkeydown", handlekeydown);
+    return () => {
+      document.removeEventListener("onkeydown", handlekeydown);
+    }
+  }, [])
+
   function getTime() {
     const today = new Date();
     const hour = (today.getHours() < 10 ? `0${today.getHours()}` : today.getHours())
@@ -339,6 +354,16 @@ function App() {
     }
 
   });
+
+  function toggleFscWordCount() {
+    if (fullscWordCToggle > 1) {
+      setfullscWordCToggle(0)
+    } else {
+      setfullscWordCToggle(o => o + 1)
+    }
+  }
+
+
   return (
     <>
       <div className="App m-3">
@@ -432,7 +457,7 @@ function App() {
             <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary me-1 bi bi-fullscreen-exit '>關閉全螢幕</Button>
           </div>
           <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
-            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} >{word}個字</div>
+            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} ><span className={`badge ${fullscWordCToggle === 0 ? "bg-primary" : fullscWordCToggle === 1 ? "bg-info" : "bg-secondary"}`} onClick={() => toggleFscWordCount()}>{fullscWordCToggle === 0 ? `${word}個字` : fullscWordCToggle === 1 ? `${characters}個字元` : `${charactersWithoutSpace}個字元(不含空白)`}</span></div>
             <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>
             <div id="batteryBar" style={{ display: "inline-block" }}>{currentBattery}</div>
           </div>

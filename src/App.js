@@ -25,12 +25,17 @@ function App() {
   const [shareCode, setShareCode] = useState("分享碼會顯示在這裡")
 
   const receiveInput = useRef()
+  const textarea = useRef()
+  const textareaFsc = useRef()
 
   const [isFullSc, setIsFullSc] = useState(false)
   const [currentTime, setCurrentTime] = useState("")
   const [currentBattery, setCurrentBattery] = useState("電池資訊")
 
   const [fullscWordCToggle, setfullscWordCToggle] = useState(0)
+
+  const [selectStr, setSelectStr] = useState()
+  const [isSelected, setIsSelected] = useState(false)
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -106,7 +111,6 @@ function App() {
   }
 
   function handleTextareaChange(event) {
-    console.log("rced")
     const inputValue = event;
     setText(inputValue);
     setWord(checkTextLength(inputValue));
@@ -115,6 +119,25 @@ function App() {
     setCharactersWithoutSpace(countNonSpaceCharacters(inputValue))
     setFileName("")
     setMsgs("")
+    setIsSelected(false)
+  }
+
+  function handleTextareaSelect(e) {
+    function getSelectedText() {
+      console.log(textarea)
+      const start = textarea.current.selectionStart;
+      const end = textarea.current.selectionEnd;
+      console.log(start, end)
+      if (start === undefined || end === undefined) return null
+      return textarea.current.value.substring(start, end);
+    }
+    var selected = getSelectedText()
+
+    if (!selected) return
+    setWord(checkTextLength(selected));
+    setCharacters(selected.length);
+    setCharactersWithoutSpace(countNonSpaceCharacters(selected))
+    setIsSelected(true)
   }
 
   function readFile(e) {
@@ -370,7 +393,12 @@ function App() {
 
         <center>
           <textarea
+            ref={textarea}
             value={text}
+            onSelect={handleTextareaSelect}
+            onTouchEnd={handleTextareaSelect}
+            onTouchMove={handleTextareaSelect}
+
             onChange={(e) => handleTextareaChange(e.target.value)}
             onBlur={(e) => handleTextareaChange(e.target.value)}
             onFocus={(e) => handleTextareaChange(e.target.value)}
@@ -385,9 +413,9 @@ function App() {
         <p></p>
         <div style={{ textAlign: "left", flexWrap: "wrap" }} className='d-flex'>
 
-          <h3><span className='badge bg-primary'>{word} 個字</span></h3>&nbsp;
-          <h3><span className='badge bg-info'>{characters} 個字元</span></h3>&nbsp;
-          <h3><span className='badge bg-secondary'>{charactersWithoutSpace} 個字元(不含空白) </span></h3>&nbsp;
+          <h3><span className='badge bg-primary'>{isSelected ? "已選取" : ""} {word} 個字</span></h3>&nbsp;
+          <h3><span className='badge bg-info'>{isSelected ? "已選取" : ""} {characters} 個字元</span></h3>&nbsp;
+          <h3><span className='badge bg-secondary'>{isSelected ? "已選取" : ""} {charactersWithoutSpace} 個字元(不含空白) </span></h3>&nbsp;
         </div>
         <h3><span className='badge bg-success'>{fileName}</span></h3>
         <p style={{ textAlign: "left" }}>{msgs}</p>
@@ -457,19 +485,23 @@ function App() {
             <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary me-1 bi bi-fullscreen-exit '>關閉全螢幕</Button>
           </div>
           <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
-            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} ><span className={`badge ${fullscWordCToggle === 0 ? "bg-primary" : fullscWordCToggle === 1 ? "bg-info" : "bg-secondary"}`} onClick={() => toggleFscWordCount()}>{fullscWordCToggle === 0 ? `${word}個字` : fullscWordCToggle === 1 ? `${characters}個字元` : `${charactersWithoutSpace}個字元(不含空白)`}</span></div>
+            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} ><span className={`badge ${fullscWordCToggle === 0 ? "bg-primary" : fullscWordCToggle === 1 ? "bg-info" : "bg-secondary"}`} onClick={() => toggleFscWordCount()}>{isSelected ? "已選取" : ""} {fullscWordCToggle === 0 ? `${word}個字` : fullscWordCToggle === 1 ? `${characters}個字元` : `${charactersWithoutSpace}個字元(不含空白)`}</span></div>
             <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>
             <div id="batteryBar" style={{ display: "inline-block" }}>{currentBattery}</div>
           </div>
         </div>
         <textarea
           value={text}
+          onSelect={handleTextareaSelect}
+          onTouchEnd={handleTextareaSelect}
+          onTouchMove={handleTextareaSelect}
+
           onChange={(e) => handleTextareaChange(e.target.value)}
           onBlur={(e) => handleTextareaChange(e.target.value)}
           onFocus={(e) => handleTextareaChange(e.target.value)}
           placeholder="輸入文字..."
           style={{ width: `100%`, height: "98%", background: (isFullSc ? "#000" : "#fff"), color: (isFullSc ? "#fff" : "#000") }}
-
+          ref={textarea}
           className='form-control form-textarea animate-textarea'
           disabled={(msgs === "資料處理中..." || msgs === "正在處理檔案..." || msgs === "正在刷新頁面...")}
         ></textarea>

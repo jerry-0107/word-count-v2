@@ -37,7 +37,7 @@ function App() {
 
   const [selectStr, setSelectStr] = useState()
   const [isSelected, setIsSelected] = useState(false)
-  const [autouploadSec, setAutoUploadSec] = useState(300)
+  const [autouploadSec, setAutoUploadSec] = useState(600)
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -373,7 +373,7 @@ function App() {
       setAutoUploadSec(s => s - 1);
     } else {
       getShareCode()
-      setAutoUploadSec(300)
+      setAutoUploadSec(600)
     }
     return `${hour}:${mins}`;
   }

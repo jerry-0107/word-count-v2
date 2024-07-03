@@ -224,6 +224,8 @@ function App() {
         console.log(res.rantxt)
         code = res.rantxt
         setShareCode(code)
+        setAutoUploadSec(600)
+
       })
       .catch(err => {
         console.log(err)
@@ -502,9 +504,9 @@ function App() {
           </div>
           <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
             <div style={{ display: "inline-block", paddingRight: "1.5rem" }} >
-              <span className='badge bg-success' onClick={() => toggleFscCodeDisplay()}>
+              <span className={`badge bg-${Number(shareCode) ? "success" : shareCode === "發生錯誤 :( " ? "danger" : "primary"}`} onClick={() => toggleFscCodeDisplay()}>
                 {fullscCodeToggle === 0 ? `${autouploadSec > 0 ? `將於${autouploadSec}秒後自動備份` : `自動備份中...`}`
-                  : `${Number(shareCode) ? `上次的備份:${shareCode}` : "目前沒有此文件的備份"}`}</span>
+                  : `${shareCode === "發生錯誤 :( " ? "上次的備份程序發生錯誤" : Number(shareCode) ? `上次的備份 : ${shareCode}` : "目前沒有此文件的備份"}`}</span>
             </div>
             <div style={{ display: "inline-block", paddingRight: "1.5rem" }} ><span className={`badge ${fullscWordCToggle === 0 ? "bg-primary" : fullscWordCToggle === 1 ? "bg-info" : "bg-secondary"}`} onClick={() => toggleFscWordCount()}>{isSelected ? "已選取" : ""} {fullscWordCToggle === 0 ? `${word}個字` : fullscWordCToggle === 1 ? `${characters}個字元` : `${charactersWithoutSpace}個字元(不含空白)`}</span></div>
             <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>

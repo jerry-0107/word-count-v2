@@ -33,9 +33,11 @@ function App() {
   const [currentBattery, setCurrentBattery] = useState("電池資訊")
 
   const [fullscWordCToggle, setfullscWordCToggle] = useState(0)
+  const [fullscCodeToggle, setfullscCodeToggle] = useState(0)
 
   const [selectStr, setSelectStr] = useState()
   const [isSelected, setIsSelected] = useState(false)
+  const [autouploadSec, setAutoUploadSec] = useState(300)
 
   useEffect(() => {
     if (!UrlParam("t")) {
@@ -362,16 +364,22 @@ function App() {
     }
   }, [])
 
-  function getTime() {
+  function getTimeAndAutoUploadCount() {
     const today = new Date();
     const hour = (today.getHours() < 10 ? `0${today.getHours()}` : today.getHours())
     const mins = (today.getMinutes() < 10 ? `0${today.getMinutes()}` : today.getMinutes())
     setCurrentTime(`${hour}:${mins}`)
+    if (autouploadSec > 0) {
+      setAutoUploadSec(s => s - 1);
+    } else {
+      getShareCode()
+      setAutoUploadSec(300)
+    }
     return `${hour}:${mins}`;
   }
 
   useEffect(() => {
-    var timer = setInterval(() => getTime(), 3000)
+    var timer = setInterval(() => getTimeAndAutoUploadCount(), 1000)
     return function cleanup() {
       clearInterval(timer)
     }
@@ -385,7 +393,14 @@ function App() {
       setfullscWordCToggle(o => o + 1)
     }
   }
-
+  function toggleFscCodeDisplay() {
+    if (fullscCodeToggle > 0) {
+      setfullscCodeToggle(0)
+    }
+    else {
+      setfullscCodeToggle(1)
+    }
+  }
 
   return (
     <>
@@ -481,10 +496,16 @@ function App() {
 
       <div id='fullscreenContainer' style={{ display: (isFullSc ? "flex" : "none"), width: "100vw", height: "100vh", flexDirection: "column" }}>
         <div id='FscTool' className='p-1' style={{ display: "flex", justifyContent: "space-between" }}>
-          <div>
+          <div className='d-flex' style={{ color: "#fff" }}>
             <Button onClick={(e) => _exitFsc()} className='btn btn-sm btn-secondary me-1 bi bi-fullscreen-exit '>關閉全螢幕</Button>
+
           </div>
           <div style={{ float: "right", color: "#fff", userSelect: "none" }}>
+            <div style={{ display: "inline-block", paddingRight: "1.5rem" }} >
+              <span className='badge bg-success' onClick={() => toggleFscCodeDisplay()}>
+                {fullscCodeToggle === 0 ? `${autouploadSec > 0 ? `將於${autouploadSec}秒後自動備份` : `自動備份中...`}`
+                  : `${Number(shareCode) ? `上次的備份:${shareCode}` : "目前沒有此文件的備份"}`}</span>
+            </div>
             <div style={{ display: "inline-block", paddingRight: "1.5rem" }} ><span className={`badge ${fullscWordCToggle === 0 ? "bg-primary" : fullscWordCToggle === 1 ? "bg-info" : "bg-secondary"}`} onClick={() => toggleFscWordCount()}>{isSelected ? "已選取" : ""} {fullscWordCToggle === 0 ? `${word}個字` : fullscWordCToggle === 1 ? `${characters}個字元` : `${charactersWithoutSpace}個字元(不含空白)`}</span></div>
             <div id="timeBar" style={{ display: "inline-block", paddingRight: "1.5rem" }} >{currentTime}</div>
             <div id="batteryBar" style={{ display: "inline-block" }}>{currentBattery}</div>
